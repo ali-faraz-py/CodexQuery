@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0D1117;
+  --text: #C9D1D9;
+  --text-muted: #8B949E;
+  --accent-green: #3FB950;
+  --accent-red: #F85149;
+  --accent-blue: #58A6FF;
+  --border: #21262D;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+
+.font-mono-display {
+  font-family: 'JetBrains Mono', monospace;
+}
