@@ -2,7 +2,6 @@ from github import Github
 import os
 import json
 
-# Repos to pull from, in your chronological order
 REPOS = [
     "ali-faraz-py/Python-CurrencyConverter",
     "ali-faraz-py/python-weather-app",
@@ -15,10 +14,8 @@ REPOS = [
     "ali-faraz-py/SentimentSense",
 ]
 
-# File types worth embedding — code and documentation, not binaries/configs
 INCLUDE_EXTENSIONS = {".py", ".md", ".txt"}
 
-# Folders to skip entirely — dependencies, build artifacts, version control internals
 SKIP_DIRS = {"venv", "node_modules", ".git", "__pycache__", ".next"}
 
 def should_include(path):
