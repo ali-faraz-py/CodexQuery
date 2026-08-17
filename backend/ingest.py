@@ -11,10 +11,12 @@ def load_files():
         return json.load(f)
 
 def chunk_file(file_entry):
-    """Split a file's content into overlapping line-based chunks."""
     lines = file_entry["content"].splitlines()
-    chunks = []
 
+    if len(lines) == 0:
+        return []
+
+    chunks = []
     if len(lines) <= CHUNK_SIZE:
         chunks.append({
             "repo": file_entry["repo"],
@@ -25,23 +27,7 @@ def chunk_file(file_entry):
         })
         return chunks
 
-    start = 0
-    while start < len(lines):
-        end = min(start + CHUNK_SIZE, len(lines))
-        chunk_text = "\n".join(lines[start:end])
-        chunks.append({
-            "repo": file_entry["repo"],
-            "path": file_entry["path"],
-            "start_line": start + 1,
-            "end_line": end,
-            "text": chunk_text
-        })
-        if end == len(lines):
-            break
-        start += CHUNK_SIZE - CHUNK_OVERLAP
-
-    return chunks
-
+    
 def main():
     print("Loading files...")
     files = load_files()

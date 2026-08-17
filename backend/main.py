@@ -47,10 +47,20 @@ def query(request: QueryRequest):
 
     chunks = results["documents"][0]
     metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+
+    RELEVANCE_THRESHOLD = 1.0
+    relevant = [(c, m) for c, m, d in zip(chunks, metadatas, distances) if d < RELEVANCE_THRESHOLD]
+
+    if not relevant:
+        return {
+            "answer": "I couldn't find anything in Ali's repositories relevant to that question. Try asking about a specific project or technical detail.",
+            "sources": []
+        }
 
     context_parts = []
     sources = []
-    for chunk, meta in zip(chunks, metadatas):
+    for chunk, meta in relevant:
         label = f"{meta['repo']}/{meta['path']} (lines {meta['start_line']}-{meta['end_line']})"
         context_parts.append(f"### {label}\n{chunk}")
         sources.append(label)
@@ -72,9 +82,7 @@ Answer the question using only the context above. If the context doesn't contain
         temperature=0.3,
     )
 
-    answer = completion.choices[0].message.content
-
     return {
-        "answer": answer,
+        "answer": completion.choices[0].message.content,
         "sources": sources
     }
