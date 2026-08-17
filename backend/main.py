@@ -48,7 +48,8 @@ def query(request: QueryRequest):
     chunks = results["documents"][0]
     metadatas = results["metadatas"][0]
     distances = results["distances"][0]
-
+    print("Distances:", distances)
+    
     RELEVANCE_THRESHOLD = 1.0
     relevant = [(c, m) for c, m, d in zip(chunks, metadatas, distances) if d < RELEVANCE_THRESHOLD]
 
