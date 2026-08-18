@@ -10,7 +10,6 @@ export const metadata = {
   description: "A RAG-powered assistant that answers questions grounded in your own repositories.",
 };
 
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
