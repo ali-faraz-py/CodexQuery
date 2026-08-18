@@ -78,11 +78,11 @@ Question: {request.question}
 Answer the question using only the context above. If the context doesn't contain enough information to answer, say so honestly rather than guessing."""
 
     completion = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
     )
-
+    
     return {
         "answer": completion.choices[0].message.content,
         "sources": sources
