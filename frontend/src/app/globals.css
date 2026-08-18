@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0D1117;
-  --text: #C9D1D9;
-  --text-muted: #8B949E;
-  --accent-green: #3FB950;
-  --accent-red: #F85149;
-  --accent-blue: #58A6FF;
-  --border: #21262D;
+  --bg: #FBFBFA;
+  --surface: #FFFFFF;
+  --text: #1A2B3C;
+  --text-muted: #8A96A3;
+  --accent-blue: #3B7BA8;
+  --accent-blue-soft: #EAF2F8;
+  --accent-amber: #D97B3F;
+  --border: #DDE3E9;
 }
 
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
 }
 
-.font-mono-display {
-  font-family: 'JetBrains Mono', monospace;
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
 }
