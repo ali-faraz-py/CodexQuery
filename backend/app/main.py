@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import json
 import chromadb
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from groq import Groq, RateLimitError
 
 load_dotenv()
@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 print("Loading embedding model...")
-embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+embed_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 print("Connecting to ChromaDB...")
 chroma_client = chromadb.PersistentClient(path="chroma_db")
@@ -65,7 +65,7 @@ if collection.count() == 0:
         all_chunks.extend(chunk_file(file_entry))
 
     texts = [c["text"] for c in all_chunks]
-    embeddings = embed_model.encode(texts).tolist()
+    embeddings = [e.tolist() for e in embed_model.embed(texts)]
     ids = [f"{c['repo']}_{c['path']}_{c['start_line']}" for c in all_chunks]
     metadatas = [
         {"repo": c["repo"], "path": c["path"], "start_line": c["start_line"], "end_line": c["end_line"]}
@@ -88,7 +88,7 @@ def health_check():
 
 @app.post("/query")
 def query(request: QueryRequest):
-    question_embedding = embed_model.encode([request.question]).tolist()
+    question_embedding = [e.tolist() for e in embed_model.embed([request.question])]
 
     results = collection.query(
         query_embeddings=question_embedding,
