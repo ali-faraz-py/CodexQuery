@@ -8,7 +8,7 @@ const REPOS = [
   { name: "DiabetesDetector", tech: "scikit-learn" },
   { name: "AetherQuant", tech: "XGBoost" },
   { name: "deepfake-detector", tech: "PyTorch" },
-  { name: "SentimentSense", tech: "NLP" },
+  { name: "SentimentSense", tech: "DistilBERT" },
   { name: "PersonalFinanceTracker", tech: "Python" },
   { name: "python-weather-app", tech: "Python" },
   { name: "Python-CurrencyConverter", tech: "Python" },
