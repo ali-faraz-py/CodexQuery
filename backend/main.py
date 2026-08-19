@@ -79,6 +79,16 @@ Answer the question using only the context above. If the context doesn't contain
     active_key = request.api_key if request.api_key else DEFAULT_GROQ_KEY
     client = Groq(api_key=active_key)
 
+    if request.question.strip().lower() == "test rate limit" and not request.api_key:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": "The shared demo API key has hit its rate limit.",
+                "retry_after_seconds": 15,
+                "used_custom_key": False
+            }
+        )
+
     try:
         completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
