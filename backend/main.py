@@ -1,11 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import chromadb
 from sentence_transformers import SentenceTransformer
-from groq import Groq
+from groq import Groq, RateLimitError
 
 load_dotenv()
 
@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 print("Loading embedding model...")
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -27,10 +26,11 @@ print("Connecting to ChromaDB...")
 chroma_client = chromadb.PersistentClient(path="chroma_db")
 collection = chroma_client.get_collection("codexquery")
 
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+DEFAULT_GROQ_KEY = os.getenv("GROQ_API_KEY")
 
 class QueryRequest(BaseModel):
     question: str
+    api_key: str | None = None
 
 @app.get("/")
 def health_check():
@@ -47,7 +47,6 @@ def query(request: QueryRequest):
 
     chunks = results["documents"][0]
     metadatas = results["metadatas"][0]
-
     distances = results["distances"][0]
 
     RELEVANCE_THRESHOLD = 1.6
@@ -77,12 +76,26 @@ Question: {request.question}
 
 Answer the question using only the context above. If the context doesn't contain enough information to answer, say so honestly rather than guessing."""
 
-    completion = groq_client.chat.completions.create(
-        model="openai/gpt-oss-120b",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-    )
-        
+    active_key = request.api_key if request.api_key else DEFAULT_GROQ_KEY
+    client = Groq(api_key=active_key)
+
+    try:
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+        )
+    except RateLimitError as e:
+        retry_after = e.response.headers.get("retry-after")
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": "The shared demo API key has hit its rate limit.",
+                "retry_after_seconds": int(float(retry_after)) if retry_after else None,
+                "used_custom_key": request.api_key is not None
+            }
+        )
+
     return {
         "answer": completion.choices[0].message.content,
         "sources": sources
