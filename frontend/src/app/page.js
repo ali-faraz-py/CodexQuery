@@ -3,15 +3,15 @@ import ReactMarkdown from "react-markdown";
 import { useState, useEffect } from "react";
 
 const REPOS = [
-  { name: "NeuralLens", tech: "PyTorch" },
-  { name: "Picassify", tech: "TensorFlow" },
-  { name: "DiabetesDetector", tech: "scikit-learn" },
+  { name: "NeuralLens", tech: "Keras (TensorFlow)" },
+  { name: "Picassify", tech: "VGG-19" },
+  { name: "DiabetesDetector", tech: "Random Forest" },
   { name: "AetherQuant", tech: "XGBoost" },
-  { name: "deepfake-detector", tech: "PyTorch" },
+  { name: "deepfake-detector", tech: "EfficientNet-B0" },
   { name: "SentimentSense", tech: "DistilBERT" },
-  { name: "PersonalFinanceTracker", tech: "Python" },
-  { name: "python-weather-app", tech: "Python" },
-  { name: "Python-CurrencyConverter", tech: "Python" },
+  { name: "PersonalFinanceTracker", tech: "NumPy" },
+  { name: "python-weather-app", tech: "PyQt5" },
+  { name: "Python-CurrencyConverter", tech: "PyQt5" },
 ];
 
 export default function Home() {
