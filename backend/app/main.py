@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+import json
 import chromadb
 from sentence_transformers import SentenceTransformer
 from groq import Groq, RateLimitError
@@ -24,7 +25,56 @@ embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 print("Connecting to ChromaDB...")
 chroma_client = chromadb.PersistentClient(path="chroma_db")
-collection = chroma_client.get_collection("codexquery")
+collection = chroma_client.get_or_create_collection("codexquery")
+
+if collection.count() == 0:
+    print("ChromaDB is empty — building index from data/repo_files.json...")
+
+    CHUNK_SIZE = 60
+    CHUNK_OVERLAP = 10
+
+    def chunk_file(file_entry):
+        lines = file_entry["content"].splitlines()
+        if len(lines) == 0:
+            return []
+        chunks = []
+        if len(lines) <= CHUNK_SIZE:
+            chunks.append({
+                "repo": file_entry["repo"], "path": file_entry["path"],
+                "start_line": 1, "end_line": len(lines), "text": file_entry["content"]
+            })
+            return chunks
+        start = 0
+        while start < len(lines):
+            end = min(start + CHUNK_SIZE, len(lines))
+            chunks.append({
+                "repo": file_entry["repo"], "path": file_entry["path"],
+                "start_line": start + 1, "end_line": end,
+                "text": "\n".join(lines[start:end])
+            })
+            if end == len(lines):
+                break
+            start += CHUNK_SIZE - CHUNK_OVERLAP
+        return chunks
+
+    with open("data/repo_files.json", "r", encoding="utf-8") as f:
+        files = json.load(f)
+
+    all_chunks = []
+    for file_entry in files:
+        all_chunks.extend(chunk_file(file_entry))
+
+    texts = [c["text"] for c in all_chunks]
+    embeddings = embed_model.encode(texts).tolist()
+    ids = [f"{c['repo']}_{c['path']}_{c['start_line']}" for c in all_chunks]
+    metadatas = [
+        {"repo": c["repo"], "path": c["path"], "start_line": c["start_line"], "end_line": c["end_line"]}
+        for c in all_chunks
+    ]
+    collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)
+    print(f"Index built: {len(all_chunks)} chunks stored.")
+else:
+    print(f"ChromaDB already has {collection.count()} chunks — skipping rebuild.")
 
 DEFAULT_GROQ_KEY = os.getenv("GROQ_API_KEY")
 
