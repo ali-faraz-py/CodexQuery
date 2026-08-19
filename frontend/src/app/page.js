@@ -1,4 +1,5 @@
 "use client";
+import ReactMarkdown from "react-markdown";
 import { useState, useEffect } from "react";
 
 const REPOS = [
@@ -129,7 +130,13 @@ export default function Home() {
                 <div className={`max-w-xl rounded-2xl px-5 py-3.5 text-sm leading-relaxed ${
                   msg.role === "user" ? "bg-[var(--accent-blue)] text-white" : "bg-[var(--surface)] border border-[var(--border)] shadow-sm"
                 }`}>
-                  {msg.text}
+                  {msg.role === "assistant" ? (
+                    <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 [&_li]:my-1 [&_p]:my-2">
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
                 {msg.sources && msg.sources.length > 0 && (
                   <div className="relative mt-2.5 max-w-xl">
