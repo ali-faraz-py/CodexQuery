@@ -24,7 +24,10 @@ print("Loading embedding model...")
 embed_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 print("Connecting to ChromaDB...")
-chroma_client = chromadb.PersistentClient(path="chroma_db")
+chroma_client = chromadb.PersistentClient(
+    path="chroma_db",
+    settings=chromadb.Settings(anonymized_telemetry=False)
+)
 collection = chroma_client.get_or_create_collection("codexquery")
 
 if collection.count() == 0:
@@ -65,7 +68,13 @@ if collection.count() == 0:
         all_chunks.extend(chunk_file(file_entry))
 
     texts = [c["text"] for c in all_chunks]
-    embeddings = [e.tolist() for e in embed_model.embed(texts)]
+    BATCH_SIZE = 20
+    embeddings = []
+    for i in range(0, len(texts), BATCH_SIZE):
+        batch = texts[i:i + BATCH_SIZE]
+        batch_embeddings = [e.tolist() for e in embed_model.embed(batch)]
+        embeddings.extend(batch_embeddings)
+
     ids = [f"{c['repo']}_{c['path']}_{c['start_line']}" for c in all_chunks]
     metadatas = [
         {"repo": c["repo"], "path": c["path"], "start_line": c["start_line"], "end_line": c["end_line"]}
