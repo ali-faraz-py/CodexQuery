@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import json
-import chromadb
+import numpy as np
 from fastembed import TextEmbedding
 from groq import Groq, RateLimitError
 
@@ -23,67 +23,19 @@ app.add_middleware(
 print("Loading embedding model...")
 embed_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
-print("Connecting to ChromaDB...")
-chroma_client = chromadb.PersistentClient(
-    path="chroma_db",
-    settings=chromadb.Settings(anonymized_telemetry=False)
-)
-collection = chroma_client.get_or_create_collection("codexquery")
+print("Loading precomputed embeddings...")
+stored_vectors = np.load("data/embeddings.npy")
+with open("data/chunks_metadata.json", "r", encoding="utf-8") as f:
+    chunks_metadata = json.load(f)
+print(f"Loaded {len(chunks_metadata)} chunks.")
 
-if collection.count() == 0:
-    print("ChromaDB is empty — building index from data/repo_files.json...")
-
-    CHUNK_SIZE = 60
-    CHUNK_OVERLAP = 10
-
-    def chunk_file(file_entry):
-        lines = file_entry["content"].splitlines()
-        if len(lines) == 0:
-            return []
-        chunks = []
-        if len(lines) <= CHUNK_SIZE:
-            chunks.append({
-                "repo": file_entry["repo"], "path": file_entry["path"],
-                "start_line": 1, "end_line": len(lines), "text": file_entry["content"]
-            })
-            return chunks
-        start = 0
-        while start < len(lines):
-            end = min(start + CHUNK_SIZE, len(lines))
-            chunks.append({
-                "repo": file_entry["repo"], "path": file_entry["path"],
-                "start_line": start + 1, "end_line": end,
-                "text": "\n".join(lines[start:end])
-            })
-            if end == len(lines):
-                break
-            start += CHUNK_SIZE - CHUNK_OVERLAP
-        return chunks
-
-    with open("data/repo_files.json", "r", encoding="utf-8") as f:
-        files = json.load(f)
-
-    all_chunks = []
-    for file_entry in files:
-        all_chunks.extend(chunk_file(file_entry))
-
-    texts = [c["text"] for c in all_chunks]
-    BATCH_SIZE = 20
-    embeddings = []
-    for i in range(0, len(texts), BATCH_SIZE):
-        batch = texts[i:i + BATCH_SIZE]
-        batch_embeddings = [e.tolist() for e in embed_model.embed(batch)]
-        embeddings.extend(batch_embeddings)
-
-    ids = [f"{c['repo']}_{c['path']}_{c['start_line']}" for c in all_chunks]
-    metadatas = [
-        {"repo": c["repo"], "path": c["path"], "start_line": c["start_line"], "end_line": c["end_line"]}
-        for c in all_chunks
-    ]
-    collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)
-    print(f"Index built: {len(all_chunks)} chunks stored.")
-else:
-    print(f"ChromaDB already has {collection.count()} chunks — skipping rebuild.")
+def cosine_similarity_search(question_vector, top_k=4):
+    question_vector = question_vector / np.linalg.norm(question_vector)
+    norms = np.linalg.norm(stored_vectors, axis=1)
+    normalized_stored = stored_vectors / norms[:, np.newaxis]
+    similarities = normalized_stored @ question_vector
+    top_indices = np.argsort(similarities)[::-1][:top_k]
+    return [(chunks_metadata[i], 1 - similarities[i]) for i in top_indices]
 
 DEFAULT_GROQ_KEY = os.getenv("GROQ_API_KEY")
 
@@ -97,19 +49,11 @@ def health_check():
 
 @app.post("/query")
 def query(request: QueryRequest):
-    question_embedding = [e.tolist() for e in embed_model.embed([request.question])]
-
-    results = collection.query(
-        query_embeddings=question_embedding,
-        n_results=4
-    )
-
-    chunks = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    distances = results["distances"][0]
+    question_vector = np.array(list(embed_model.embed([request.question]))[0])
 
     RELEVANCE_THRESHOLD = 1.6
-    relevant = [(c, m) for c, m, d in zip(chunks, metadatas, distances) if d < RELEVANCE_THRESHOLD]
+    results = cosine_similarity_search(question_vector, top_k=4)
+    relevant = [(meta, dist) for meta, dist in results if dist < RELEVANCE_THRESHOLD]
 
     if not relevant:
         return {
@@ -119,9 +63,9 @@ def query(request: QueryRequest):
 
     context_parts = []
     sources = []
-    for chunk, meta in relevant:
+    for meta, dist in relevant:
         label = f"{meta['repo']}/{meta['path']} (lines {meta['start_line']}-{meta['end_line']})"
-        context_parts.append(f"### {label}\n{chunk}")
+        context_parts.append(f"### {label}\n{meta['text']}")
         sources.append(label)
 
     context = "\n\n".join(context_parts)
