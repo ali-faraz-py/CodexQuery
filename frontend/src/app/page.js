@@ -82,7 +82,7 @@ export default function Home() {
       const hitRepos = [...new Set(data.sources.map(s => s.split("/")[0]))];
       setActiveRepos(hitRepos);
     } catch (err) {
-      setMessages(prev => [...prev, { role: "assistant", text: "Something went wrong reaching the backend. Is it running?", sources: [] }]);
+      setMessages(prev => [...prev, { role: "assistant", text: "Something went wrong on my end, please try again in a moment.", sources: [] }]);
     } finally {
       setLoading(false);
     }
