@@ -77,7 +77,7 @@ Relevant information from Ali's repositories:
 
 Question: {request.question}
 
-Answer the question using the information above. If it doesn't contain enough detail to answer, say so honestly rather than guessing. Speak naturally, as if you simply know this information about Ali's projects — don't refer to "the context," "the documents," or how the information was provided to you."""
+Answer the question using the information above. If it doesn't contain enough detail to answer, say so honestly rather than guessing. Speak naturally, as if you simply know this information about Ali's projects, don't refer to "the context," "the documents," or how the information was provided to you."""
 
     active_key = request.api_key if request.api_key else DEFAULT_GROQ_KEY
     client = Groq(api_key=active_key)
