@@ -26,6 +26,18 @@ export default function Home() {
   const [customKey, setCustomKey] = useState("");
   const [useCustomKey, setUseCustomKey] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("codexquery-theme");
+    const isDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setDarkMode(isDark);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    localStorage.setItem("codexquery-theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   useEffect(() => {
     if (countdown === null || countdown <= 0) return;
@@ -124,10 +136,17 @@ export default function Home() {
           <button onClick={() => setShowSidebar(true)} className="lg:hidden text-[var(--text-muted)]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <div className="max-w-3xl mx-auto lg:mx-0">
+          <div className="max-w-3xl mx-auto lg:mx-0 flex-1">
             <h1 className="font-display text-xl lg:text-2xl font-semibold tracking-tight">CodexQuery</h1>
             <p className="text-xs lg:text-sm text-[var(--text-muted)] mt-0.5 lg:mt-1 font-mono">9 repos indexed · 87 chunks · grep-and-generate</p>
           </div>
+          <button onClick={() => setDarkMode(!darkMode)} className="text-[var(--text-muted)] hover:text-[var(--accent-blue)] transition-colors">
+            {darkMode ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            )}
+          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 lg:py-8">
