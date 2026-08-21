@@ -12,6 +12,18 @@
   --grid-line: #2C5F8A0D;
 }
 
+.dark {
+  --bg: #0F1720;
+  --surface: #1A2530;
+  --text: #E8EBEF;
+  --text-muted: #8A96A3;
+  --accent-blue: #5B9BD5;
+  --accent-blue-soft: #1E2E3D;
+  --accent-amber: #E8935C;
+  --border: #2A3745;
+  --grid-line: #5B9BD50D;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -20,6 +32,7 @@ body {
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 32px 32px;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .font-display {
