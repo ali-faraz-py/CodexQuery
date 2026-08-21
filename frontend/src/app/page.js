@@ -3,15 +3,15 @@ import ReactMarkdown from "react-markdown";
 import { useState, useEffect } from "react";
 
 const REPOS = [
-  { name: "NeuralLens", tech: "Keras (TensorFlow)" },
-  { name: "Picassify", tech: "VGG-19" },
-  { name: "DiabetesDetector", tech: "Random Forest" },
+  { name: "NeuralLens", tech: "PyTorch" },
+  { name: "Picassify", tech: "TensorFlow" },
+  { name: "DiabetesDetector", tech: "scikit-learn" },
   { name: "AetherQuant", tech: "XGBoost" },
-  { name: "deepfake-detector", tech: "EfficientNet-B0" },
-  { name: "SentimentSense", tech: "DistilBERT" },
-  { name: "PersonalFinanceTracker", tech: "NumPy" },
-  { name: "python-weather-app", tech: "PyQt5" },
-  { name: "Python-CurrencyConverter", tech: "PyQt5" },
+  { name: "deepfake-detector", tech: "PyTorch" },
+  { name: "SentimentSense", tech: "NLP" },
+  { name: "PersonalFinanceTracker", tech: "Python" },
+  { name: "python-weather-app", tech: "Python" },
+  { name: "Python-CurrencyConverter", tech: "Python" },
 ];
 
 export default function Home() {
@@ -25,6 +25,7 @@ export default function Home() {
   const [countdown, setCountdown] = useState(null);
   const [customKey, setCustomKey] = useState("");
   const [useCustomKey, setUseCustomKey] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     if (countdown === null || countdown <= 0) return;
@@ -82,7 +83,7 @@ export default function Home() {
       const hitRepos = [...new Set(data.sources.map(s => s.split("/")[0]))];
       setActiveRepos(hitRepos);
     } catch (err) {
-      setMessages(prev => [...prev, { role: "assistant", text: "Something went wrong on my end, please try again in a moment.", sources: [] }]);
+      setMessages(prev => [...prev, { role: "assistant", text: "Something went wrong on my end — please try again in a moment.", sources: [] }]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,10 @@ export default function Home() {
 
   return (
     <div className="flex h-screen">
-      <aside className="w-72 border-r border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm p-6 hidden lg:block overflow-y-auto">
+      {showSidebar && (
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setShowSidebar(false)} />
+      )}
+      <aside className={`w-72 border-r border-[var(--border)] bg-[var(--surface)] lg:bg-[var(--surface)]/60 backdrop-blur-sm p-6 overflow-y-auto fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-200 ${showSidebar ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <h2 className="font-display text-xs font-semibold tracking-widest text-[var(--text-muted)] mb-5 uppercase">Indexed Repositories</h2>
         <div className="space-y-2">
           {REPOS.map((repo) => {
@@ -116,14 +120,17 @@ export default function Home() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="border-b border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm px-8 py-6">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="font-display text-2xl font-semibold tracking-tight">CodexQuery</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1 font-mono">9 repos indexed · 87 chunks · grep-and-generate</p>
+        <header className="border-b border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm px-4 lg:px-8 py-4 lg:py-6 flex items-center gap-3">
+          <button onClick={() => setShowSidebar(true)} className="lg:hidden text-[var(--text-muted)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div className="max-w-3xl mx-auto lg:mx-0">
+            <h1 className="font-display text-xl lg:text-2xl font-semibold tracking-tight">CodexQuery</h1>
+            <p className="text-xs lg:text-sm text-[var(--text-muted)] mt-0.5 lg:mt-1 font-mono">9 repos indexed · 87 chunks · grep-and-generate</p>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 lg:py-8">
           <div className="max-w-3xl mx-auto space-y-6">
             {messages.map((msg, i) => (
               <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
@@ -193,7 +200,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="border-t border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm px-8 py-5">
+        <div className="border-t border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm px-4 lg:px-8 py-4 lg:py-5">
           <div className="max-w-3xl mx-auto flex gap-3">
             <input
               value={input}
