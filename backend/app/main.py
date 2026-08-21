@@ -6,7 +6,7 @@ import os
 import json
 import numpy as np
 from fastembed import TextEmbedding
-from groq import Groq, RateLimitError
+from groq import Groq, RateLimitError, AuthenticationError
 
 load_dotenv()
 
@@ -96,6 +96,13 @@ Answer the question using only the context above. If the context doesn't contain
                 "message": "The shared demo API key has hit its rate limit.",
                 "retry_after_seconds": int(float(retry_after)) if retry_after else None,
                 "used_custom_key": request.api_key is not None
+            }
+        )
+    except AuthenticationError:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "message": "That API key doesn't look valid. Double-check it and try again."
             }
         )
 
