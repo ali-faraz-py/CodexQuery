@@ -1,6 +1,6 @@
 # CodexQuery
 
-An AI assistant that answers questions about my software portfolio — grounded in the actual code and documentation across 9 of my repositories, not generic knowledge about what those projects might contain.
+An AI assistant that answers questions about my software portfolio, grounded in the actual code and documentation across 9 of my repositories, not generic knowledge about what those projects might contain.
 
 **Live demo:** [codex-query.vercel.app](https://codex-query.vercel.app)
 
@@ -8,7 +8,7 @@ An AI assistant that answers questions about my software portfolio — grounded 
 
 ## What it does
 
-CodexQuery is a Retrieval-Augmented Generation (RAG) chatbot. Instead of relying on an LLM's general training knowledge, it retrieves relevant chunks of my actual repositories — code, docstrings, and README content — and grounds every answer in that retrieved context. Ask it "what model does NeuralLens use?" and it answers from NeuralLens's real README, with a citation pointing to the exact file and line range.
+CodexQuery is a Retrieval-Augmented Generation (RAG) chatbot. Instead of relying on an LLM's general training knowledge, it retrieves relevant chunks of my actual repositories, code, docstrings, and README content, and grounds every answer in that retrieved context. Ask it "what model does NeuralLens use?" and it answers from NeuralLens's real README, with a citation pointing to the exact file and line range.
 
 This distinguishes it from most portfolio chatbots, which typically answer from a single resume or project-summary document. CodexQuery searches across an entire multi-project codebase and treats retrieval over code as a genuinely harder problem than retrieval over plain prose.
 
@@ -20,7 +20,7 @@ This distinguishes it from most portfolio chatbots, which typically answer from 
 
 ## How it works
 
-1. **Ingestion** — a one-time local script pulls source files (`.py`, `.md`, `.txt`) from 9 of my repositories, filtering out dependency folders, build artifacts, and non-text files.
+1. **Ingestion:** a one-time local script pulls source files (`.py`, `.md`, `.txt`) from 9 of my repositories, filtering out dependency folders, build artifacts, and non-text files.
 2. **Chunking** — files are split into overlapping ~60-line chunks (10-line overlap), so retrieval returns focused, coherent pieces rather than whole files or arbitrary cuts.
 3. **Embedding** — each chunk is converted into a vector using `fastembed`, a lightweight ONNX-based embedding library.
 4. **Storage** — vectors and their metadata (repo, file path, line range) are precomputed once and committed to the repo as a small numpy array, rather than stored in a live vector database.
