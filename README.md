@@ -21,12 +21,12 @@ This distinguishes it from most portfolio chatbots, which typically answer from 
 ## How it works
 
 1. **Ingestion:**  A one-time local script pulls source files (`.py`, `.md`, `.txt`) from 9 of my repositories, filtering out dependency folders, build artifacts, and non-text files.
-2. **Chunking:**  files are split into overlapping ~60-line chunks (10-line overlap), so retrieval returns focused, coherent pieces rather than whole files or arbitrary cuts.
-3. **Embedding:**  each chunk is converted into a vector using `fastembed`, a lightweight ONNX-based embedding library.
-4. **Storage:**  vectors and their metadata (repo, file path, line range) are precomputed once and committed to the repo as a small numpy array, rather than stored in a live vector database.
-5. **Retrieval:**  at query time, the question is embedded the same way, and compared against all stored vectors using cosine similarity (implemented directly in numpy) to find the top matches.
-6. **Relevance filtering:**  matches beyond a distance threshold are discarded, so genuinely off-topic questions get an honest "I don't know" instead of a forced answer.
-7. **Generation:**  the retrieved chunks and the question are sent to Groq's `gpt-oss-120b`, instructed to answer only from the provided context and to say so plainly when the context isn't sufficient.
+2. **Chunking:**  Files are split into overlapping ~60-line chunks (10-line overlap), so retrieval returns focused, coherent pieces rather than whole files or arbitrary cuts.
+3. **Embedding:**  Each chunk is converted into a vector using `fastembed`, a lightweight ONNX-based embedding library.
+4. **Storage:**  Vectors and their metadata (repo, file path, line range) are precomputed once and committed to the repo as a small numpy array, rather than stored in a live vector database.
+5. **Retrieval:**  At query time, the question is embedded the same way, and compared against all stored vectors using cosine similarity (implemented directly in numpy) to find the top matches.
+6. **Relevance filtering:**  Matches beyond a distance threshold are discarded, so genuinely off-topic questions get an honest "I don't know" instead of a forced answer.
+7. **Generation:**  The retrieved chunks and the question are sent to Groq's `gpt-oss-120b`, instructed to answer only from the provided context and to say so plainly when the context isn't sufficient.
 
 ## Notable design decisions
 
